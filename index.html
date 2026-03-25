@@ -1,0 +1,168 @@
+import React, { useState } from 'react';
+import { BarChart2, Star, Search, Menu, X, TrendingUp, TrendingDown, Clock, Moon } from 'lucide-react';
+export default function App() {
+  const [selectedStock, setSelectedStock] = useState("NASDAQ:AAPL");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // ข้อมูลจำลองสำหรับ Watchlist (รายการหุ้นที่เฝ้าติดตาม) เพิ่มข้อมูล prePrice และ preChange
+  const watchlist = [
+    { symbol: "NASDAQ:AAPL", name: "Apple Inc.", price: "173.50", change: "+1.2", isUp: true, prePrice: "174.15", preChange: "+0.37", preIsUp: true },
+    { symbol: "NASDAQ:TSLA", name: "Tesla", price: "188.14", change: "-0.5", isUp: false, prePrice: "187.20", preChange: "-0.50", preIsUp: false },
+    { symbol: "NASDAQ:NVDA", name: "NVIDIA", price: "900.20", change: "+2.4", isUp: true, prePrice: "905.50", preChange: "+0.58", preIsUp: true },
+    { symbol: "BINANCE:BTCUSDT", name: "Bitcoin", price: "68,400.00", change: "+5.1", isUp: true, prePrice: "68,450.00", preChange: "+0.07", preIsUp: true },
+    { symbol: "SET:PTT", name: "PTT PCL", price: "34.50", change: "-1.0", isUp: false, prePrice: "34.50", preChange: "0.00", preIsUp: true },
+    { symbol: "AMEX:SPY", name: "S&P 500 ETF", price: "515.00", change: "+0.8", isUp: true, prePrice: "516.10", preChange: "+0.21", preIsUp: true },
+    { symbol: "NASDAQ:GOOGL", name: "Alphabet Inc.", price: "142.10", change: "+0.3", isUp: true, prePrice: "141.80", preChange: "-0.21", preIsUp: false },
+    { symbol: "NASDAQ:AMZN", name: "Amazon.com", price: "175.35", change: "-0.2", isUp: false, prePrice: "176.00", preChange: "+0.37", preIsUp: true },
+  ];
+
+  const filteredWatchlist = watchlist.filter(stock => 
+    stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    stock.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // ดึงข้อมูลหุ้นที่กำลังเลือกอยู่มาแสดงที่หัวกราฟ
+  const currentStock = watchlist.find(s => s.symbol === selectedStock) || watchlist[0];
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-900 text-gray-100 font-sans">
+      
+      {/* Header (แถบด้านบน) */}
+      <header className="flex items-center justify-between h-14 px-4 bg-gray-800 border-b border-gray-700 shrink-0">
+        <div className="flex items-center gap-3">
+          <button 
+            className="p-1 md:hidden hover:bg-gray-700 rounded"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <div className="flex items-center gap-2 text-blue-500 font-bold text-xl">
+            <BarChart2 size={28} />
+            <span className="hidden sm:block text-white">Pro<span className="text-blue-500">Trader</span></span>
+          </div>
+        </div>
+
+        <div className="flex-1 max-w-md mx-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input 
+              type="text" 
+              placeholder="ค้นหาสัญลักษณ์ (เช่น AAPL, BTC)..." 
+              className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-sm">
+          <div className="hidden md:flex items-center gap-1 text-gray-400">
+            <Clock size={16} />
+            <span>ตลาดเปิด (Market Open)</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-lg cursor-pointer hover:bg-blue-500">
+            U
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content (ส่วนเนื้อหาหลัก) */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* Sidebar / Watchlist (รายการหุ้นด้านซ้าย) */}
+        <aside className={`${isSidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-80 bg-gray-800 border-r border-gray-700 flex flex-col z-10 absolute md:relative h-full`}>
+          <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <Star size={18} className="text-yellow-500" /> Watchlist
+            </h2>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            {filteredWatchlist.length > 0 ? (
+              <ul className="divide-y divide-gray-700/50">
+                {filteredWatchlist.map((stock) => (
+                  <li 
+                    key={stock.symbol}
+                    className={`p-3 cursor-pointer hover:bg-gray-700 transition-colors flex justify-between items-center ${selectedStock === stock.symbol ? 'bg-gray-700 border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+                    onClick={() => {
+                      setSelectedStock(stock.symbol);
+                      setIsSidebarOpen(false); // ปิด sidebar บนมือถือเมื่อเลือกหุ้น
+                    }}
+                  >
+                    <div>
+                      <div className="font-bold text-md">{stock.symbol.split(':')[1] || stock.symbol}</div>
+                      <div className="text-xs text-gray-400">{stock.name}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-md">{stock.price}</div>
+                      <div className={`text-xs flex items-center justify-end gap-1 ${stock.isUp ? 'text-green-500' : 'text-red-500'}`}>
+                        {stock.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {stock.change}%
+                      </div>
+                      {/* เพิ่มการแสดงผล Overnight/Pre-market ใน Watchlist */}
+                      <div className="text-[10px] mt-1 flex items-center justify-end gap-1 text-gray-400">
+                        <Moon size={10} className="text-blue-400" />
+                        <span>{stock.prePrice}</span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-4 text-center text-gray-500 text-sm">ไม่พบหุ้นที่ค้นหา</div>
+            )}
+          </div>
+        </aside>
+
+        {/* Chart Area (พื้นที่กราฟ) */}
+        <main className="flex-1 bg-gray-900 flex flex-col relative">
+          
+          {/* แถบข้อมูลหุ้นที่เลือก (Selected Stock Info) แสดงราคา Pre-Market */}
+          <div className="bg-gray-800 p-3 lg:px-6 border-b border-gray-700 flex flex-wrap items-center gap-4 lg:gap-8 shrink-0">
+            <div>
+              <h1 className="text-xl font-bold">{currentStock.symbol.split(':')[1] || currentStock.symbol}</h1>
+              <div className="text-xs text-gray-400">{currentStock.name}</div>
+            </div>
+            
+            <div className="flex items-baseline gap-2">
+              <span className={`text-2xl font-bold ${currentStock.isUp ? 'text-green-500' : 'text-red-500'}`}>
+                {currentStock.price}
+              </span>
+              <span className={`text-sm font-medium ${currentStock.isUp ? 'text-green-500' : 'text-red-500'} flex items-center`}>
+                {currentStock.isUp ? '+' : ''}{currentStock.change}%
+              </span>
+            </div>
+
+            <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2"></div>
+
+            {/* ส่วนแสดงราคา Overnight / Pre-Market ตรงหัวกราฟ */}
+            <div className="flex flex-col justify-center">
+              <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                <Moon size={12} className="text-blue-400" /> 
+                Overnight / Pre-Market
+              </span>
+              <div className={`text-sm font-semibold ${currentStock.preIsUp ? 'text-green-400' : 'text-red-400'} flex items-center gap-1`}>
+                {currentStock.prePrice} 
+                <span className="text-xs font-normal">
+                  ({currentStock.preIsUp ? '+' : ''}{currentStock.preChange}%)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Iframe สำหรับโหลด Advanced Chart จาก TradingView */}
+          <div className="flex-1 relative w-full h-full">
+            <iframe
+              title="TradingView Advanced Chart"
+              src={`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(selectedStock)}&interval=D&theme=dark&style=1&locale=th&toolbarbg=1f2937&hide_side_toolbar=0&allow_symbol_change=true&save_image=false&studies=%5B%5D`}
+              className="w-full h-full border-none absolute inset-0"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  );
+}
